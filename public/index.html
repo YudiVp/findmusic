@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>🎵 FindMusic</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>🎵 FindMusic</h1>
+    <p>Envie um arquivo MP3 para identificar a música:</p>
+    <form id="uploadForm" enctype="multipart/form-data">
+      <input type="file" name="music" accept=".mp3" required />
+      <button type="submit">Enviar</button>
+    </form>
+    <div id="result"></div>
+  </div>
+
+  <script>
+    document.getElementById('uploadForm').onsubmit = async function (event) {
+      event.preventDefault();
+      const formData = new FormData(this);
+      const resultDiv = document.getElementById('result');
+      resultDiv.innerHTML = '<p>🔍 Procurando música...</p>';
+
+      const response = await fetch('/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const result = await response.json();
+      if (response.ok) {
+        resultDiv.innerHTML = `
+          <h2>Resultado:</h2>
+          <p><strong>Música:</strong> ${result.title}</p>
+          <p><strong>Artista:</strong> ${result.artist}</p>
+          <p><strong>Álbum:</strong> ${result.album || 'Desconhecido'}</p>
+          <p><strong>Data de Lançamento:</strong> ${result.release_date || 'Desconhecida'}</p>
+          ${result.spotify ? `<p><a href="${result.spotify.external_urls.spotify}" target="_blank">Ouça no Spotify</a></p>` : ''}
+          ${result.apple_music ? `<p><a href="${result.apple_music.url}" target="_blank">Ouça no Apple Music</a></p>` : ''}
+        `;
+      } else {
+        resultDiv.innerHTML = `<p style="color: red;">${result.error}</p>`;
+      }
+    };
+  </script>
+</body>
+</html>
